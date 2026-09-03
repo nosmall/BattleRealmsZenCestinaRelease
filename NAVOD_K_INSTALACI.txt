@@ -1,0 +1,108 @@
+======================================================================
+     ČESKÁ LOKALIZACE PRO BATTLE REALMS: ZEN EDITION (STEAM)
+======================================================================
+Autor lokalizace:     nosmall (s asistencí AI pro lingvistickou adaptaci)
+Verze hry:            1.60 (Build 1.60.0.0)
+Ověřený Steam Build:  24930908
+Verze překladu:       v1.0
+Datum sestavení:      3. září 2026
+Stav dokončení:       100.0 % (93 z 93 souborů, 6430/6430 řádků)
+======================================================================
+
+Děkujeme, že hrajete Battle Realms s touto českou lokalizací!
+Tento překlad pokrývá veškerá herní menu, nastavení grafiky a zvuku,
+kompletní dabované dialogy a titulky cutscén obou kampaní (Kenji i Grayback),
+úkoly a cíle misí, hlášení v bitvách, nápovědy k budovám, jednotkám i schopnostem
+v dolní konzoli a kompletní nastavení kláves.
+
+Máte dvě možnosti instalace – vyberte si tu, která vám více vyhovuje:
+
+
+----------------------------------------------------------------------
+ZPŮSOB 1: AUTOMATICKÁ INSTALACE (DOPORUČENO – 1 KLIKNUTÍ)
+----------------------------------------------------------------------
+1. Rozbalte stažený archiv ZIP do libovolné složky (např. na Plochu
+   nebo do Stažených souborů).
+   (NENÍ nutné balíček kopírovat do složky se hrou!)
+
+2. Ujistěte se, že hra Battle Realms právě neběží.
+
+3. Dvakrát klikněte na: "instalovat_cestinu.bat".
+
+Skript automaticky:
+- Prohledá vaše disky (C:, D:, E:, F...) a najde instalaci hry.
+- Vytvoří bezpečné zálohy původní angličtiny (*.original).
+- Nakopíruje české texty rozhraní i dialogové archivy s titulky.
+- Vaše herní složka zůstane naprosto čistá bez jakéhokoliv zbytečného smetí.
+
+
+----------------------------------------------------------------------
+ZPŮSOB 2: RUČNÍ INSTALACE BEZ SKRIPTŮ (PRO MAXIMÁLNÍ JISTOTU)
+----------------------------------------------------------------------
+Pokud nechcete ve svém počítači spouštět žádné skripty (.bat),
+můžete si češtinu nainstalovat zcela ručně:
+
+1. Otevřete složku s vaší hrou Battle Realms na Steamu:
+   Typicky: C:\Program Files (x86)\Steam\steamapps\common\Battle Realms\
+
+2. Z tohoto rozbaleného balíčku češtiny ze složky "data":
+   - Zkopírujte "Interface_Text.H2O" do herní složky "Interface\".
+   - Pokud balíček obsahuje i složku "Sound\Dialogue", zkopírujte její
+     obsah do herní složky "Sound\Dialogue\".
+
+HOTOVO! Spusťte hru a hrajte v češtině. Nezapomeňte si v nastavení hry
+zapnout titulky (Subtitles), aby se vám zobrazovaly české dialogy.
+
+* Jak češtinu ručně odinstalovat:
+  Ve složce hry jednoduše smažte české soubory a přejmenujte zálohy
+  *.original zpět na původní názvy (nebo ve Steamu zvolte Ověřit integritu).
+
+
+----------------------------------------------------------------------
+PŘEPÍNÁNÍ JAZYKA (ČEŠTINA / ANGLIČTINA):
+----------------------------------------------------------------------
+- Kdykoliv můžete ve své složce s češtinou spustit "prepnout_jazyk.bat".
+  Zvolením [1] nebo [2] okamžitě přepnete mezi češtinou a angličtinou.
+- Pro rychlý návrat k tovární angličtině stačí kliknout na "obnovit_anglictinu.bat".
+
+
+----------------------------------------------------------------------
+ČASTO KLADENÉ OTÁZKY:
+----------------------------------------------------------------------
+* Jaké má být nastavení jazyka přímo ve hře?
+  -> V herním nastavení ponechte "ENG". Čeština je integrována přímo
+     do herního balíčku. Nezapomeňte si zapnout Titulky (Subtitles).
+
+* Proč v textech nejsou háčky a čárky?
+  -> Herní engine z roku 2001 neumí ve svých bitmapových fontech české
+     znaky s diakritikou vykreslit. Bez diakritiky se texty zobrazují
+     100% spolehlivě a čitelně bez vynechaných písmen.
+
+* Proč jsou názvy jednotek a budov v angličtině?
+  -> Pro zachování maximálního taktického přehledu (Peasant, Samurai,
+     Dojo, Keep apod.) zůstávají mezinárodní herní názvy zachovány.
+     Veškeré popisy, akce a schopnosti jsou kompletně v češtině.
+
+
+----------------------------------------------------------------------
+AUTORSKÁ PRÁVA, ZPĚTNÁ VAZBA A PODĚKOVÁNÍ:
+----------------------------------------------------------------------
+- Autor lokalizace: nosmall (s asistencí AI pro lingvistickou adaptaci).
+- Neoficiální fanouškovský překlad vytvořený zdarma pro herní komunitu.
+- Battle Realms: Zen Edition je duševním vlastnictvím Crape Dynamics
+  a Liquid Entertainment. Všechna práva k původní hře vyhrazena.
+- Našli jste chybu nebo překlep? Nahlaste ji prosím v záložce Issues:
+  https://github.com/nosmall/BattleRealmsZenCestinaRelease/issues
+
+
+----------------------------------------------------------------------
+ZŘEKNUTÍ SE ODPOVĚDNOSTI:
+----------------------------------------------------------------------
+Tento software a lokalizační soubory jsou poskytovány „TAK, JAK JSOU“
+(AS IS), bez záruky jakéhokoli druhu. Autor nenese žádnou odpovědnost
+za případné chyby, poškození hry, ztrátu uložených pozic ani jiné potíže
+vzniklé instalací nebo používáním tohoto neoficiálního rozšíření.
+Instalace probíhá na vlastní odpovědnost uživatele.
+
+Přejeme příjemnou zábavu při hraní!
+======================================================================

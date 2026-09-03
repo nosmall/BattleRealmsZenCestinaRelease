@@ -1,0 +1,7 @@
+# Ignorovat binární herní data v distribučním repozitáři (jsou distribuována přes GitHub Releases)
+data/
+*.zip
+*.H2O
+*.log
+.DS_Store
+Thumbs.db

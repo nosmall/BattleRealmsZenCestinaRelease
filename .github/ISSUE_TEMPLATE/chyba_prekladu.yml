@@ -1,0 +1,38 @@
+name: Hlášení chyby v překladu
+description: Našli jste ve hře překlep, nesprávný význam nebo chybějící text?
+title: "[CHYBA TEXTU]: "
+labels: ["preklad", "chyba"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Díky za pomoc se zdokonalováním češtiny pro Battle Realms: Zen Edition!
+  - type: input
+    id: location
+    attributes:
+      label: Kde se chyba nachází?
+      description: Např. Kampaň za Draky - Mise 3, Hlavní menu, Popis jednotky Peasant, Dialog v misi atd.
+      placeholder: "Např. Mise 2 (Kenji), dialog mezi Kenjim a Otomem"
+    validations:
+      required: true
+  - type: textarea
+    id: current_text
+    attributes:
+      label: Text zobrazený ve hře (chybný text)
+      description: Co přesně hra zobrazuje (nebo jak text zní)?
+      placeholder: "Uveďte text, který je ve hře špatně..."
+    validations:
+      required: true
+  - type: textarea
+    id: suggested_text
+    attributes:
+      label: Návrh opravy (jak by to mělo být česky)
+      description: Váš návrh na správný text.
+      placeholder: "Navrhuji upravit na: ..."
+    validations:
+      required: false
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Doplňující informace nebo screenshot
+      description: Můžete přiložit screenshot nebo kontext situace.

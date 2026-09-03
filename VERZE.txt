@@ -1,0 +1,29 @@
+======================================================================
+  INFORMACE O VERZI ČEŠTINY A KOMPATIBILITĚ S HRU
+======================================================================
+
+Název překladu:       Čeština pro Battle Realms: Zen Edition
+Verze lokalizace:     v1.0
+Cílová platforma:     Steam (PC / Windows)
+Kompatibilní hra:     Battle Realms: Zen Edition
+Verze hry:            1.60 (Build 1.60.0.0)
+Ověřený Steam Build:  24930908
+Datum sestavení:      3. září 2026
+Autor lokalizace:     nosmall (s asistencí AI pro lingvistickou adaptaci)
+
+STAV DOKONČENÍ:
+- Herní menu a veškerá nastavení:   100 % HOTOVO
+- Úkoly a cíle misí (obě kampaně):  100 % HOTOVO
+- Nápovědy jednotek a budov (panel): 100 % HOTOVO
+- Popisy herních kláves a příkazů:  100 % HOTOVO
+- Hlášení v bitvách a citáty:        100 % HOTOVO
+- Dabované dialogy a cutscény:       100 % HOTOVO (2117 / 2117 řádků)
+- Celkový stav lokalizace hry:      100.0 % (93 z 93 souborů hotovo)
+- Přeloženo textových řádků celkem:  6430 / 6430
+
+POZNÁMKA K AKTUALIZACÍM:
+Pokud vývojáři hry vydají na Steamu nový patch, tato čeština
+zůstane funkční. Pokud by vývojáři přidali nové texty,
+zkontrolujte dostupnost aktualizované verze překladu:
+https://github.com/nosmall/BattleRealmsZenCestinaRelease
+======================================================================

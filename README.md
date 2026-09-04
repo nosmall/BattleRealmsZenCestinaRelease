@@ -43,12 +43,14 @@ Překlad pokrývá **100 % celé hry** (celkem **6430 textových řádků** v 93
 
 1. Stáhněte a rozbalte stažený archiv ZIP (např. na Plochu nebo do Stažených souborů).
 2. Ujistěte se, že hra Battle Realms právě neběží.
-3. Dvakrát klikněte na soubor **`instalovat_cestinu.bat`**.
+3. Klikněte pravým tlačítkem myši na soubor **`instalovat_cestinu.bat`** a zvolte **Spustit jako správce** (Run as administrator).  
+   *(Práva správce jsou nutná pro bezpečný zápis a zálohování souborů v Program Files).*
 
 Skript sám:
 * Automaticky prohledá vaše disky a najde Steam instalaci hry.
-* Vytvoří bezpečné zálohy původní angličtiny (`*.original`).
-* Nakopíruje české soubory do hry bez jakéhokoliv zbytečného smetí.
+* Vytvoří bezpečné zálohy původních souborů (`*.original`).
+* Dynamicky nakopíruje všechny české soubory z balíčku do hry.
+* Ověří bezchybný zápis a zobrazí přehledný stav.
 
 ---
 
@@ -58,8 +60,7 @@ Pokud nechcete spouštět žádné dávkové skripty:
 1. Otevřete složku s hrou na Steamu:  
    `...\Steam\steamapps\common\Battle Realms\`
 2. Ze staženého balíčku ze složky `data/`:
-   - Zkopírujte `Interface_Text.H2O` do herní složky `Interface/`.
-   - Pokud instalujete FULL edici, zkopírujte obsah `data/Sound/Dialogue/` do herní složky `Sound/Dialogue/`.
+   - Zkopírujte celý obsah složky `data/` přímo do kořenové složky se hrou (složky `Interface/`, případně `Sound/Dialogue/` se automaticky sloučí).
 
 ---
 

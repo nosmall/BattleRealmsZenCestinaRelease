@@ -2,15 +2,48 @@
 chcp 65001 >nul
 title Battle Realms v1.60 (Steam Build 24930908) - Přepínač jazyka (CZ / ENG)
 
-set "CZ_H2O=%~dp0data\Interface_Text.H2O"
-if not exist "%CZ_H2O%" (
-    if exist "%~dp0Interface\Interface_Text.H2O" (
-        set "CZ_H2O=%~dp0Interface\Interface_Text.H2O"
-    ) else (
-        echo [CHYBA] Chybí česká data! (%CZ_H2O%)
-        pause
-        exit /b 1
-    )
+:: Zajištění správného pracovního adresáře i při spuštění jako správce
+cd /d "%~dp0"
+
+set "GAME_VER=1.60"
+
+:: 0. KONTROLA ADMINISTRÁTORSKÝCH OPRÁVNĚNÍ
+net session >nul 2>&1
+if not errorlevel 1 goto has_admin
+
+:: Pokus o automatické vyžádání správce (UAC dialog)
+powershell -Command "Start-Process cmd -ArgumentList '/c \"\"%~f0\"\"' -Verb RunAs" >nul 2>&1
+if not errorlevel 1 exit /b 0
+
+cls
+echo ======================================================================
+echo  [!] SKRIPT VYŽADUJE OPRÁVNĚNÍ SPRÁVCE - ADMINISTRÁTORA
+echo ======================================================================
+echo.
+echo Pro přepínání herních souborů v Program Files je nutné
+echo spustit tento skript jako Správce:
+echo.
+echo   1. Zavřete toto okno.
+echo   2. Klikněte na "prepnout_jazyk.bat" pravým tlačítkem myši.
+echo   3. Zvolte "Spustit jako správce" / "Run as administrator".
+echo.
+echo ======================================================================
+echo.
+pause
+exit /b 1
+
+:has_admin
+set "DATA_DIR=%~dp0data"
+if not exist "%DATA_DIR%" (
+    echo [CHYBA] Chybí česká data: %DATA_DIR%
+    pause
+    exit /b 1
+)
+
+:: Zpětná kompatibilita: pokud Interface_Text.H2O leží přímo v data\, přesuneme do data\Interface\
+if exist "%DATA_DIR%\Interface_Text.H2O" (
+    if not exist "%DATA_DIR%\Interface" mkdir "%DATA_DIR%\Interface" >nul 2>&1
+    move /y "%DATA_DIR%\Interface_Text.H2O" "%DATA_DIR%\Interface\Interface_Text.H2O" >nul 2>&1
 )
 
 tasklist /fi "imagename eq Battle_Realms_F.exe" 2>nul | findstr /i "Battle_Realms_F.exe" >nul
@@ -32,7 +65,23 @@ if exist "%C_STEAM%\Battle_Realms_F.exe" (
     set "GAME_DIR=%C_STEAM%"
     goto game_found
 )
-for %%D in (D E F G H) do (
+
+:: Detekce Steamu z Windows Registru
+for /f "tokens=2* delims=	 " %%A in ('reg query "HKCU\Software\Valve\Steam" /v "SteamPath" 2^>nul') do (
+    if exist "%%B\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
+        set "GAME_DIR=%%B\steamapps\common\Battle Realms"
+        goto game_found
+    )
+)
+for /f "tokens=2* delims=	 " %%A in ('reg query "HKLM\SOFTWARE\WOW6432Node\Valve\Steam" /v "InstallPath" 2^>nul') do (
+    if exist "%%B\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
+        set "GAME_DIR=%%B\steamapps\common\Battle Realms"
+        goto game_found
+    )
+)
+
+:: Běžné Steam knihovny na všech discích (C až H)
+for %%D in (C D E F G H) do (
     if exist "%%D:\SteamLibrary\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
         set "GAME_DIR=%%D:\SteamLibrary\steamapps\common\Battle Realms"
         goto game_found
@@ -71,9 +120,7 @@ pause
 exit /b 1
 
 :game_found
-set "INT_DIR=%GAME_DIR%\Interface"
-set "CURR_H2O=%INT_DIR%\Interface_Text.H2O"
-set "ORIG_H2O=%INT_DIR%\Interface_Text.H2O.original"
+if "%GAME_DIR:~-1%"=="\" set "GAME_DIR=%GAME_DIR:~0,-1%"
 
 :menu
 cls
@@ -81,6 +128,7 @@ echo ======================================================================
 echo    BATTLE REALMS: ZEN EDITION - PŘEPÍNAČ JAZYKA
 echo ======================================================================
 echo  Herní složka: %GAME_DIR%
+echo  Verze hry:    v%GAME_VER%
 echo ======================================================================
 echo.
 echo  [1] Aktivovat ČEŠTINU
@@ -98,72 +146,114 @@ timeout /t 1 >nul
 goto menu
 
 :set_cz
-if not exist "%ORIG_H2O%" (
-    if exist "%CURR_H2O%" (
-        echo [*] Vytvářím zálohu originální angličtiny: Interface_Text.H2O.original
-        copy /y "%CURR_H2O%" "%ORIG_H2O%" >nul
-    )
-)
+cls
+echo ======================================================================
+echo    AKTIVACE ČEŠTINY (PRO HRU v%GAME_VER%)
+echo ======================================================================
+echo.
 
-echo [*] Nasazuji české texty rozhraní...
-copy /y "%CZ_H2O%" "%CURR_H2O%" >nul
-if errorlevel 1 (
-    echo [CHYBA] Kopírování selhalo. Zkontrolujte oprávnění správce a zda hra neběží.
-    pause
-    goto menu
-)
+set /a TOTAL_COUNT=0
+set /a OK_COUNT=0
+set /a ERR_COUNT=0
 
-set "PKG_DIA=%~dp0data\Sound\Dialogue"
-if exist "%PKG_DIA%" (
-    echo [*] Nasazuji české dialogy a titulky...
-    set "GAME_DIA=%GAME_DIR%\Sound\Dialogue"
-    if not exist "%GAME_DIA%" mkdir "%GAME_DIA%"
+if "%DATA_DIR:~-1%"=="\" set "DATA_DIR=%DATA_DIR:~0,-1%"
 
-    for %%F in ("%PKG_DIA%\*.H2O") do (
-        if not exist "%GAME_DIA%\%%~nxF.original" (
-            if exist "%GAME_DIA%\%%~nxF" (
-                copy /y "%GAME_DIA%\%%~nxF" "%GAME_DIA%\%%~nxF.original" >nul
-            )
-        )
-        copy /y "%%F" "%GAME_DIA%\%%~nxF" >nul
-    )
+for /f "delims=" %%F in ('dir /b /s /a-d "%DATA_DIR%" 2^>nul') do (
+    call :process_cz_file "%%F"
 )
 
 echo.
-echo [OK] Čeština byla úspěšně aktivována!
+if %ERR_COUNT% gtr 0 (
+    echo [VAROVÁNÍ] Některé soubory se nepodařilo zkopírovat - chyb: %ERR_COUNT%
+) else (
+    echo [OK] Čeština byla úspěšně aktivována - instalováno souborů: %OK_COUNT%
+)
 echo.
 pause
 goto end
+
+:process_cz_file
+set "SRC=%~1"
+set "REL=%SRC%"
+call set "REL=%%REL:%DATA_DIR%\=%%"
+set "DEST=%GAME_DIR%\%REL%"
+
+for %%D in ("%DEST%") do set "DEST_DIR=%%~dpD"
+if not exist "%DEST_DIR%" mkdir "%DEST_DIR%" >nul 2>&1
+
+set /a TOTAL_COUNT+=1
+
+REM Verzovaná záloha originálu pro konkrétní verzi hry: *.original.v%GAME_VER%
+set "BAK_FILE=%DEST%.original.v%GAME_VER%"
+if not exist "%BAK_FILE%" (
+    if exist "%DEST%" (
+        echo   [*] Zálohuji originál hry [v%GAME_VER%]: %REL%
+        copy /y "%DEST%" "%BAK_FILE%" >nul 2>&1
+        if errorlevel 1 (
+            echo   [CHYBA] Nelze vytvořit zálohu pro: %REL%
+            set /a ERR_COUNT+=1
+            exit /b 1
+        )
+    )
+) else (
+    echo   [*] Záloha originálu pro v%GAME_VER% již existuje: %REL%
+)
+
+REM Instalace českého souboru
+echo   [+] Instaluji: %REL%
+copy /y "%SRC%" "%DEST%" >nul 2>&1
+if errorlevel 1 (
+    echo   [CHYBA] Přístup odepřen nebo chyba zápisu u: %REL%
+    set /a ERR_COUNT+=1
+) else (
+    set /a OK_COUNT+=1
+)
+exit /b 0
 
 :set_en
-set "RESTORED=0"
+cls
+echo ======================================================================
+echo    OBNOVENÍ ANGLIČTINY ZE ZÁLOH (*.original.v%GAME_VER%)
+echo ======================================================================
+echo.
 
-if exist "%ORIG_H2O%" (
-    echo [*] Obnovuji původní Interface_Text.H2O...
-    copy /y "%ORIG_H2O%" "%CURR_H2O%" >nul
-    set "RESTORED=1"
-)
+set /a RESTORE_COUNT=0
+set /a RESTORE_ERR=0
 
-set "GAME_DIA=%GAME_DIR%\Sound\Dialogue"
-if exist "%GAME_DIA%" (
-    for %%F in ("%GAME_DIA%\*.original") do (
-        echo [*] Obnovuji původní %%~nF...
-        copy /y "%%F" "%GAME_DIA%\%%~nF" >nul
-        set "RESTORED=1"
-    )
-)
-
-if "%RESTORED%"=="0" (
-    echo.
-    echo [!] Záložní soubory nebyly nalezeny. Hra je již pravděpodobně v původním stavu.
-    pause
-    goto menu
+set "SUFFIX=.original.v%GAME_VER%"
+for /f "delims=" %%F in ('dir /b /s /a-d "%GAME_DIR%\*%SUFFIX%" 2^>nul') do (
+    call :restore_file "%%F" "%SUFFIX%"
 )
 
 echo.
-echo [OK] Původní angličtina byla úspěšně obnovena!
+if %RESTORE_COUNT% equ 0 (
+    echo [!] Žádné záložní soubory [*.original.v%GAME_VER%] nebyly nalezeny. Hra je již v původním stavu.
+) else (
+    if %RESTORE_ERR% gtr 0 (
+        echo [VAROVÁNÍ] Obnoveno %RESTORE_COUNT% souborů, ale u %RESTORE_ERR% došlo k chybě.
+    ) else (
+        echo [OK] Původní angličtina byla úspěšně obnovena - počet souborů: %RESTORE_COUNT%
+    )
+)
 echo.
 pause
 goto end
+
+:restore_file
+set "ORIG_FILE=%~1"
+set "EXT_TO_STRIP=%~2"
+call set "TARGET_FILE=%%ORIG_FILE:%EXT_TO_STRIP%=%%"
+set "REL_FILE=%TARGET_FILE%"
+call set "REL_FILE=%%REL_FILE:%GAME_DIR%\=%%"
+
+echo   [*] Obnovuji originál: %REL_FILE%
+copy /y "%ORIG_FILE%" "%TARGET_FILE%" >nul 2>&1
+if errorlevel 1 (
+    echo   [CHYBA] Obnovení souboru selhalo: %REL_FILE%
+    set /a RESTORE_ERR+=1
+) else (
+    set /a RESTORE_COUNT+=1
+)
+exit /b 0
 
 :end

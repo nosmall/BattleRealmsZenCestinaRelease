@@ -2,11 +2,44 @@
 chcp 65001 >nul
 title Obnovení původní angličtiny - Battle Realms: Zen Edition
 
+:: Zajištění správného pracovního adresáře i při spuštění jako správce
+cd /d "%~dp0"
+
+set "GAME_VER=1.60"
+
+:: 0. KONTROLA ADMINISTRÁTORSKÝCH OPRÁVNĚNÍ
+net session >nul 2>&1
+if not errorlevel 1 goto has_admin
+
+:: Pokus o automatické vyžádání správce (UAC dialog)
+powershell -Command "Start-Process cmd -ArgumentList '/c \"\"%~f0\"\"' -Verb RunAs" >nul 2>&1
+if not errorlevel 1 exit /b 0
+
+cls
 echo ======================================================================
-echo    OBNOVENÍ PŮVODNÍ ANGLIČTINY (TOVÁRNÍ STAV)
+echo  [!] SKRIPT VYŽADUJE OPRÁVNĚNÍ SPRÁVCE - ADMINISTRÁTORA
+echo ======================================================================
+echo.
+echo Pro obnovení původních herních souborů v Program Files je nutné
+echo spustit tento skript jako Správce:
+echo.
+echo   1. Zavřete toto okno.
+echo   2. Klikněte na "obnovit_anglictinu.bat" pravým tlačítkem myši.
+echo   3. Zvolte "Spustit jako správce" / "Run as administrator".
+echo.
+echo ======================================================================
+echo.
+pause
+exit /b 1
+
+:has_admin
+cls
+echo ======================================================================
+echo    OBNOVENÍ PŮVODNÍ ANGLIČTINY (TOVÁRNÍ STAV PRO HRU v%GAME_VER%)
 echo ======================================================================
 echo.
 
+:: 1. KONTROLA BĚŽÍCÍ HRY
 tasklist /fi "imagename eq Battle_Realms_F.exe" 2>nul | findstr /i "Battle_Realms_F.exe" >nul
 if not errorlevel 1 (
     echo [POZOR] Hra Battle Realms právě běží!
@@ -16,17 +49,36 @@ if not errorlevel 1 (
     exit /b 1
 )
 
+:: 2. AUTODETEKCE HERNÍ SLOŽKY
 set "GAME_DIR="
+
 if exist "%~dp0Battle_Realms_F.exe" (
     set "GAME_DIR=%~dp0"
     goto game_found
 )
+
 set "C_STEAM=C:\Program Files (x86)\Steam\steamapps\common\Battle Realms"
 if exist "%C_STEAM%\Battle_Realms_F.exe" (
     set "GAME_DIR=%C_STEAM%"
     goto game_found
 )
-for %%D in (D E F G H) do (
+
+:: Detekce Steamu z Windows Registru
+for /f "tokens=2* delims=	 " %%A in ('reg query "HKCU\Software\Valve\Steam" /v "SteamPath" 2^>nul') do (
+    if exist "%%B\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
+        set "GAME_DIR=%%B\steamapps\common\Battle Realms"
+        goto game_found
+    )
+)
+for /f "tokens=2* delims=	 " %%A in ('reg query "HKLM\SOFTWARE\WOW6432Node\Valve\Steam" /v "InstallPath" 2^>nul') do (
+    if exist "%%B\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
+        set "GAME_DIR=%%B\steamapps\common\Battle Realms"
+        goto game_found
+    )
+)
+
+:: Běžné Steam knihovny na všech discích (C až H)
+for %%D in (C D E F G H) do (
     if exist "%%D:\SteamLibrary\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
         set "GAME_DIR=%%D:\SteamLibrary\steamapps\common\Battle Realms"
         goto game_found
@@ -60,52 +112,59 @@ if exist "%USER_INPUT%\Battle_Realms_F.exe" (
     set "GAME_DIR=%USER_INPUT%"
     goto game_found
 )
-echo [CHYBA] Složka nebyla nalezena.
+echo [CHYBA] Ve složce se nenachází Battle_Realms_F.exe.
 pause
 exit /b 1
 
 :game_found
-set "INT_DIR=%GAME_DIR%\Interface"
-set "CURR_H2O=%INT_DIR%\Interface_Text.H2O"
-set "ORIG_H2O=%INT_DIR%\Interface_Text.H2O.original"
+if "%GAME_DIR:~-1%"=="\" set "GAME_DIR=%GAME_DIR:~0,-1%"
+echo [*] Nalezena herní složka: "%GAME_DIR%"
+echo.
+echo ======================================================================
+echo    OBNOVOVÁNÍ PŮVODNÍCH SOUBORŮ ZE ZÁLOH (*.original.v%GAME_VER%)
+echo ======================================================================
+echo.
 
-set "DIA_DIR=%GAME_DIR%\Sound\Dialogue"
+set /a RESTORE_COUNT=0
+set /a RESTORE_ERR=0
 
-set "RESTORED=0"
-
-if exist "%ORIG_H2O%" (
-    echo [*] Obnovuji původní Interface_Text.H2O ze zálohy...
-    copy /y "%ORIG_H2O%" "%CURR_H2O%" >nul
-    if errorlevel 1 (
-        echo [CHYBA] Obnovení textů selhalo. Ujistěte se, že hra neběží a máte práva k zápisu.
-        pause
-        exit /b 1
-    )
-    set "RESTORED=1"
-    echo [OK] Texty rozhraní byly vráceny do původního anglického stavu.
-)
-
-if exist "%DIA_DIR%" (
-    for %%F in ("%DIA_DIR%\*.original") do (
-        set "BASE_NAME=%%~nF"
-        echo [*] Obnovuji %%~nF...
-        copy /y "%%F" "%DIA_DIR%\%%~nF" >nul
-        set "RESTORED=1"
-    )
-)
-
-if "%RESTORED%"=="0" (
-    echo.
-    echo [!] Žádné záložní soubory (*.original) nebyly nalezeny.
-    echo Hra je již v původním anglickém stavu.
-    echo.
-    pause
-    exit /b 0
+set "SUFFIX=.original.v%GAME_VER%"
+for /f "delims=" %%F in ('dir /b /s /a-d "%GAME_DIR%\*%SUFFIX%" 2^>nul') do (
+    call :restore_file "%%F" "%SUFFIX%"
 )
 
 echo.
-echo ======================================================================
-echo    ÚSPĚCH! Hra byla kompletně vrácena do původního anglického stavu.
-echo ======================================================================
+if %RESTORE_COUNT% equ 0 (
+    echo [!] Žádné záložní soubory [*.original.v%GAME_VER%] nebyly v herní složce nalezeny.
+    echo Hra je již v původním stavu nebo nebyla zálohována tímto instalátorem.
+) else (
+    if %RESTORE_ERR% gtr 0 (
+        echo ======================================================================
+        echo  [VAROVÁNÍ] Obnoveno %RESTORE_COUNT% souborů, ale u %RESTORE_ERR% došlo k chybě zápisu.
+        echo ======================================================================
+    ) else (
+        echo ======================================================================
+        echo    ÚSPĚCH! Obnoveno %RESTORE_COUNT% souborů do původního anglického stavu.
+        echo ======================================================================
+    )
+)
 echo.
 pause
+exit /b 0
+
+:restore_file
+set "ORIG_FILE=%~1"
+set "EXT_TO_STRIP=%~2"
+call set "TARGET_FILE=%%ORIG_FILE:%EXT_TO_STRIP%=%%"
+set "REL_FILE=%TARGET_FILE%"
+call set "REL_FILE=%%REL_FILE:%GAME_DIR%\=%%"
+
+echo   [*] Obnovuji originál: %REL_FILE%
+copy /y "%ORIG_FILE%" "%TARGET_FILE%" >nul 2>&1
+if errorlevel 1 (
+    echo   [CHYBA] Obnovení souboru selhalo: %REL_FILE%
+    set /a RESTORE_ERR+=1
+) else (
+    set /a RESTORE_COUNT+=1
+)
+exit /b 0

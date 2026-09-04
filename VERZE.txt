@@ -8,7 +8,7 @@ Cílová platforma:     Steam (PC / Windows)
 Kompatibilní hra:     Battle Realms: Zen Edition
 Verze hry:            1.60 (Build 1.60.0.0)
 Ověřený Steam Build:  24930908
-Datum sestavení:      3. září 2026
+Datum sestavení:      4. září 2026
 Autor lokalizace:     nosmall (s asistencí AI pro lingvistickou adaptaci)
 
 STAV DOKONČENÍ:

@@ -5,7 +5,7 @@ Autor lokalizace:     nosmall (s asistencí AI pro lingvistickou adaptaci)
 Verze hry:            1.60 (Build 1.60.0.0)
 Ověřený Steam Build:  24930908
 Verze překladu:       v1.0
-Datum sestavení:      3. září 2026
+Datum sestavení:      4. září 2026
 Stav dokončení:       100.0 % (93 z 93 souborů, 6430/6430 řádků)
 ======================================================================
 
@@ -27,13 +27,15 @@ ZPŮSOB 1: AUTOMATICKÁ INSTALACE (DOPORUČENO – 1 KLIKNUTÍ)
 
 2. Ujistěte se, že hra Battle Realms právě neběží.
 
-3. Dvakrát klikněte na: "instalovat_cestinu.bat".
+3. Klikněte pravým tlačítkem myši na: "instalovat_cestinu.bat"
+   a zvolte "Spustit jako správce" (Run as administrator).
+   (Práva správce jsou nutná pro zápis a zálohování souborů v Program Files.)
 
 Skript automaticky:
 - Prohledá vaše disky (C:, D:, E:, F...) a najde instalaci hry.
-- Vytvoří bezpečné zálohy původní angličtiny (*.original).
-- Nakopíruje české texty rozhraní i dialogové archivy s titulky.
-- Vaše herní složka zůstane naprosto čistá bez jakéhokoliv zbytečného smetí.
+- Vytvoří bezpečné zálohy původních souborů (*.original).
+- Dynamicky nainstaluje všechny české soubory přítomné v balíčku.
+- Zkontroluje bezchybný zápis a zobrazí přesný souhrn.
 
 
 ----------------------------------------------------------------------
@@ -46,9 +48,8 @@ můžete si češtinu nainstalovat zcela ručně:
    Typicky: C:\Program Files (x86)\Steam\steamapps\common\Battle Realms\
 
 2. Z tohoto rozbaleného balíčku češtiny ze složky "data":
-   - Zkopírujte "Interface_Text.H2O" do herní složky "Interface\".
-   - Pokud balíček obsahuje i složku "Sound\Dialogue", zkopírujte její
-     obsah do herní složky "Sound\Dialogue\".
+   - Zkopírujte celý obsah složky "data" přímo do kořenové složky se hrou
+     (podsložky "Interface", případně "Sound\Dialogue" se automaticky sloučí).
 
 HOTOVO! Spusťte hru a hrajte v češtině. Nezapomeňte si v nastavení hry
 zapnout titulky (Subtitles), aby se vám zobrazovaly české dialogy.

@@ -2,26 +2,60 @@
 chcp 65001 >nul
 title Instalace češtiny v1.0 pro hru v1.60 (Steam Build 24930908) - Battle Realms
 
+:: Zajištění správného pracovního adresáře i při spuštění jako správce
+cd /d "%~dp0"
+
+set "GAME_VER=1.60"
+
+:: 0. KONTROLA ADMINISTRÁTORSKÝCH OPRÁVNĚNÍ
+net session >nul 2>&1
+if not errorlevel 1 goto has_admin
+
+:: Pokus o automatické vyžádání správce (UAC dialog)
+powershell -Command "Start-Process cmd -ArgumentList '/c \"\"%~f0\"\"' -Verb RunAs" >nul 2>&1
+if not errorlevel 1 exit /b 0
+
+cls
+echo ======================================================================
+echo  [!] INSTALAČNÍ SKRIPT VYŽADUJE OPRÁVNĚNÍ SPRÁVCE - ADMINISTRÁTORA
+echo ======================================================================
+echo.
+echo Hra se obvykle nachází v systémové složce Program Files,
+echo kam běžný uživatel nemá oprávnění zapisovat ani vytvářet zálohy.
+echo.
+echo POSTUP PRO SPUŠTĚNÍ:
+echo   1. Zavřete toto okno.
+echo   2. Klikněte na soubor "instalovat_cestinu.bat" pravým tlačítkem myši.
+echo   3. Zvolte "Spustit jako správce" / "Run as administrator".
+echo.
+echo ======================================================================
+echo.
+pause
+exit /b 1
+
+:has_admin
+cls
 echo ======================================================================
 echo    ČESKÝ PŘEKLAD v1.0 PRO BATTLE REALMS v1.60 (Steam Build 24930908)
 echo ======================================================================
 echo.
 
 :: 1. KONTROLA INTEGRITY BALÍČKU
-set "CZ_H2O=%~dp0data\Interface_Text.H2O"
-if exist "%CZ_H2O%" goto check_game
-if exist "%~dp0Interface\Interface_Text.H2O" (
-    set "CZ_H2O=%~dp0Interface\Interface_Text.H2O"
-    goto check_game
+set "DATA_DIR=%~dp0data"
+if not exist "%DATA_DIR%" (
+    echo [CHYBA] Složka s českými daty nebyla nalezena: "%DATA_DIR%"
+    echo Prosím, rozbalte CELÝ archiv ZIP do samostatné složky.
+    echo.
+    pause
+    exit /b 1
 )
 
-echo [CHYBA] Chybí česká data: "%CZ_H2O%"
-echo Prosím, rozbalte CELÝ archiv ZIP do samostatné složky.
-echo.
-pause
-exit /b 1
+:: Zpětná kompatibilita: pokud Interface_Text.H2O leží přímo v data\, přesuneme do data\Interface\
+if exist "%DATA_DIR%\Interface_Text.H2O" (
+    if not exist "%DATA_DIR%\Interface" mkdir "%DATA_DIR%\Interface" >nul 2>&1
+    move /y "%DATA_DIR%\Interface_Text.H2O" "%DATA_DIR%\Interface\Interface_Text.H2O" >nul 2>&1
+)
 
-:check_game
 :: 2. KONTROLA BĚŽÍCÍ HRY
 tasklist /fi "imagename eq Battle_Realms_F.exe" 2>nul | findstr /i "Battle_Realms_F.exe" >nul
 if not errorlevel 1 (
@@ -48,8 +82,22 @@ if exist "%C_STEAM%\Battle_Realms_F.exe" (
     goto game_found
 )
 
-:: C) Časté Steam knihovny na dalších discích
-for %%D in (D E F G H) do (
+:: C) Detekce Steamu z Windows Registru
+for /f "tokens=2* delims=	 " %%A in ('reg query "HKCU\Software\Valve\Steam" /v "SteamPath" 2^>nul') do (
+    if exist "%%B\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
+        set "GAME_DIR=%%B\steamapps\common\Battle Realms"
+        goto game_found
+    )
+)
+for /f "tokens=2* delims=	 " %%A in ('reg query "HKLM\SOFTWARE\WOW6432Node\Valve\Steam" /v "InstallPath" 2^>nul') do (
+    if exist "%%B\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
+        set "GAME_DIR=%%B\steamapps\common\Battle Realms"
+        goto game_found
+    )
+)
+
+:: D) Běžné Steam knihovny na všech discích (C až H)
+for %%D in (C D E F G H) do (
     if exist "%%D:\SteamLibrary\steamapps\common\Battle Realms\Battle_Realms_F.exe" (
         set "GAME_DIR=%%D:\SteamLibrary\steamapps\common\Battle Realms"
         goto game_found
@@ -68,7 +116,7 @@ for %%D in (D E F G H) do (
     )
 )
 
-:: D) Dotaz na cestu, pokud nebyla nalezena
+:: E) Dotaz na cestu, pokud nebyla nalezena
 cls
 echo ======================================================================
 echo    HRA NEBYLA NALEZENA V ŽÁDNÉ Z BĚŽNÝCH SLOŽEK STEAMU
@@ -88,70 +136,96 @@ if exist "%USER_INPUT%\Battle_Realms_F.exe" (
 
 echo.
 echo [CHYBA] Ve složce "%USER_INPUT%" se nenachází soubor Battle_Realms_F.exe!
+echo.
 pause
 exit /b 1
 
 :game_found
+if "%GAME_DIR:~-1%"=="\" set "GAME_DIR=%GAME_DIR:~0,-1%"
 echo [*] Nalezena herní složka: "%GAME_DIR%"
 echo.
 
-set "INT_DIR=%GAME_DIR%\Interface"
-set "CURR_H2O=%INT_DIR%\Interface_Text.H2O"
-set "ORIG_H2O=%INT_DIR%\Interface_Text.H2O.original"
+:: 4. DYNAMICKÁ INSTALACE VŠECH SOUBORŮ Z DATA\
+echo ======================================================================
+echo    INSTALACE ČESKÝCH SOUBORŮ DO HRY (PRO HRU v%GAME_VER%)
+echo ======================================================================
+echo.
 
-:: 4. BEZPEČNÁ ZÁLOHA ORIGINÁLNÍHO ANGLICKÉHO SOUBORU
-if not exist "%ORIG_H2O%" (
-    if exist "%CURR_H2O%" (
-        echo [*] Vytvářím zálohu originální angličtiny: Interface_Text.H2O.original
-        copy /y "%CURR_H2O%" "%ORIG_H2O%" >nul
-        if errorlevel 1 (
-            echo [VAROVÁNÍ] Nepodařilo se vytvořit záložní soubor.
-        ) else (
-            echo [OK] Původní angličtina je bezpečně zálohována.
-        )
-    )
-) else (
-    echo [*] Záloha originální angličtiny již existuje.
+set /a TOTAL_COUNT=0
+set /a OK_COUNT=0
+set /a ERR_COUNT=0
+
+if "%DATA_DIR:~-1%"=="\" set "DATA_DIR=%DATA_DIR:~0,-1%"
+
+for /f "delims=" %%F in ('dir /b /s /a-d "%DATA_DIR%" 2^>nul') do (
+    call :process_file "%%F"
 )
 
-:: 5. KOPÍROVÁNÍ POUZE JEDNOHO ČESKÉHO SOUBORU
-:: 5. KOPÍROVÁNÍ ČESKÝCH TEXTŮ A DIALOGŮ
-echo [*] Instaluji české texty rozhraní...
-copy /y "%CZ_H2O%" "%CURR_H2O%" >nul
-if errorlevel 1 (
-    echo [CHYBA] Instalace textů selhala! Ujistěte se, že hra neběží a máte práva k zápisu.
+echo.
+if %TOTAL_COUNT% equ 0 (
+    echo [CHYBA] Ve složce "data" nebyly nalezeny žádné soubory k instalaci!
     pause
     exit /b 1
 )
-echo [OK] České texty rozhraní úspěšně nainstalovány.
 
-:: Kontrola, zda balíček obsahuje i český dabing/titulky dialogů (Sound\Dialogue)
-set "PKG_DIA=%~dp0data\Sound\Dialogue"
-if exist "%PKG_DIA%" (
+if %ERR_COUNT% gtr 0 (
+    echo ======================================================================
+    echo  [VAROVÁNÍ] INSTALACE DOKONČENA S CHYBAMI!
+    echo ======================================================================
+    echo  Úspěšně nainstalováno: %OK_COUNT% souborů
+    echo  Chybných souborů:      %ERR_COUNT% souborů
     echo.
-    echo [*] Nalezeny české dialogy a titulky ke cutscénám...
-    set "GAME_DIA=%GAME_DIR%\Sound\Dialogue"
-    if not exist "%GAME_DIA%" mkdir "%GAME_DIA%"
-
-    for %%F in ("%PKG_DIA%\*.H2O") do (
-        if not exist "%GAME_DIA%\%%~nxF.original" (
-            if exist "%GAME_DIA%\%%~nxF" (
-                echo   [+] Zálohuji originální %%~nxF...
-                copy /y "%GAME_DIA%\%%~nxF" "%GAME_DIA%\%%~nxF.original" >nul
-            )
-        )
-        echo   [+] Instaluji český %%~nxF...
-        copy /y "%%F" "%GAME_DIA%\%%~nxF" >nul
-    )
-    echo [OK] Všechny české dialogy a titulky byly úspěšně nainstalovány.
+    echo  Některé soubory se nepodařilo zapsat. Zkontrolujte oprávnění správce.
+    echo ======================================================================
+) else (
+    echo ======================================================================
+    echo    ČEŠTINA BYLA ÚSPĚŠNĚ NAINSTALOVÁNA!
+    echo ======================================================================
+    echo  Úspěšně nainstalováno souborů: %OK_COUNT%
+    echo.
+    echo Hra je nyní kompletně připravena v českém jazyce.
+    echo Spusťte hru přes Steam a v nastavení hry se ujistěte, že máte zapnuté
+    echo titulky [Subtitles], aby se vám zobrazovaly české texty k dialogům.
+    echo ======================================================================
 )
-
-echo.
-echo ======================================================================
-echo    ČEŠTINA BYLA ÚSPĚŠNĚ NAINSTALOVÁNA!
-echo ======================================================================
-echo Hra je nyní kompletně připravena v českém jazyce.
-echo Spusťte hru přes Steam a v nastavení se ujistěte, že máte zapnuté
-echo titulky (Subtitles), aby se vám zobrazovaly české texty k rozhovorům.
 echo.
 pause
+exit /b 0
+
+:process_file
+set "SRC=%~1"
+set "REL=%SRC%"
+call set "REL=%%REL:%DATA_DIR%\=%%"
+set "DEST=%GAME_DIR%\%REL%"
+
+for %%D in ("%DEST%") do set "DEST_DIR=%%~dpD"
+if not exist "%DEST_DIR%" mkdir "%DEST_DIR%" >nul 2>&1
+
+set /a TOTAL_COUNT+=1
+
+REM Verzovaná záloha originálu pro konkrétní verzi hry: *.original.v%GAME_VER%
+set "BAK_FILE=%DEST%.original.v%GAME_VER%"
+if not exist "%BAK_FILE%" (
+    if exist "%DEST%" (
+        echo   [*] Zálohuji originál hry [v%GAME_VER%]: %REL%
+        copy /y "%DEST%" "%BAK_FILE%" >nul 2>&1
+        if errorlevel 1 (
+            echo   [CHYBA] Nelze vytvořit zálohu: %REL%.original.v%GAME_VER%
+            set /a ERR_COUNT+=1
+            exit /b 1
+        )
+    )
+) else (
+    echo   [*] Záloha originálu pro v%GAME_VER% již existuje: %REL%
+)
+
+REM Instalace českého souboru
+echo   [+] Instaluji: %REL%
+copy /y "%SRC%" "%DEST%" >nul 2>&1
+if errorlevel 1 (
+    echo   [CHYBA] Přístup odepřen nebo chyba zápisu u: %REL%
+    set /a ERR_COUNT+=1
+) else (
+    set /a OK_COUNT+=1
+)
+exit /b 0
